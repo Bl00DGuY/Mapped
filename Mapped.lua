@@ -1,20 +1,30 @@
-﻿function Mapped_OnMouseDown()
-	Mapped_MainFrame:StartMoving()
+﻿Mapped = LibStub("AceAddon-3.0"):NewAddon("Mapped", "AceConsole-3.0", "AceEvent-3.0")
+local AceGUI = LibStub("AceGUI-3.0")
+local currentZone = GetZoneText();
+local currentSubZone = GetSubZoneText();
+
+function Mapped:OnInitialize()
+    -- Called when the addon is loaded
 end
 
-function Mapped_OnMouseUp()
-	Mapped_MainFrame:StopMovingOrSizing()
+function Mapped:OnEnable()
+    self:Print("Version 0.0.0.1 loaded.")
+	self:RegisterEvent("ZONE_CHANGED")
 end
 
-local f = CreateFrame("Frame",nil,UIParent)
-f:SetFrameStrata("BACKGROUND")
-f:SetWidth(128) -- Set these to whatever height/width is needed 
-f:SetHeight(64) -- for your Texture
+function Mapped:ZONE_CHANGED()
+	self:Print(GetZoneText())
+end
 
-local t = f:CreateTexture(nil,"BACKGROUND")
-t:SetTexture("Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Factions.blp")
-t:SetAllPoints(f)
-f.texture = t
+local mainFrame = AceGUI:Create("Frame")
+mainFrame:SetTitle("Mapped")
+mainFrame:SetStatusText("Mapped 0.0.0.1")
 
-f:SetPoint("LEFT",0,0)
-f:Show()
+local labelCurZone = AceGUI:Create("Label")
+labelCurZone:SetFont("Font\\homespun.ttf", 12, "OUTLINE")
+labelCurZone:SetText(currentZone)
+mainFrame:AddChild(labelCurZone)
+
+local labelCurSubZone = AceGUI:Create("Label")
+labelCurSubZone:SetText(currentSubZone)
+mainFrame:AddChild(labelCurSubZone)

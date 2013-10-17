@@ -4,6 +4,7 @@
 ## Author: Bl00DGuY
 ## Notes: Improve your map.
 ## OptionalDeps: Ace3
+## X-Embeds: Ace3
 
 Mapped.lua
 Mapped.xml
