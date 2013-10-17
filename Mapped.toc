@@ -1,0 +1,9 @@
+﻿## Interface: 50400
+## Title: Mapped
+## Version: 0.0.0.1
+## Author: Bl00DGuY
+## Notes: Improve your map.
+## OptionalDeps: Ace3
+
+Mapped.lua
+Mapped.xml
