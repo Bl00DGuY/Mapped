@@ -2,7 +2,6 @@
 local AceGUI = LibStub("AceGUI-3.0")
 local currentZone = GetZoneText();
 local currentSubZone = GetSubZoneText();
-local devDebug = false;
 
 function Mapped:OnInitialize()
     -- Called when the addon is loaded
@@ -10,9 +9,6 @@ end
 
 function Mapped:OnEnable()
     self:Print("Version 0.0.0.1 loaded.")
-	if (devDebug == true) then
-	self:Print("Debug Enabled.")
-	end
 end
 
 -- Main Frame
