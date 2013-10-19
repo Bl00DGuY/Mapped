@@ -1,4 +1,4 @@
-﻿Mapped = LibStub("AceAddon-3.0"):NewAddon("Mapped", "AceConsole-3.0", "AceEvent-3.0")
+Mapped = LibStub("AceAddon-3.0"):NewAddon("Mapped", "AceConsole-3.0", "AceEvent-3.0")
 local AceGUI = LibStub("AceGUI-3.0")
 local currentZone = GetZoneText();
 local currentSubZone = GetSubZoneText();
@@ -8,7 +8,7 @@ function Mapped:OnInitialize()
 end
 
 function Mapped:OnEnable()
-    self:Print("Version 0.0.0.1 loaded.")
+    self:Print("Version 0.0.0.1a loaded.")
 end
 
 -- Main Frame
@@ -108,6 +108,17 @@ end
 f:SetScript("OnEvent", eventHandler);
 f:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 local function eventHandler(self, ZONE_CHANGED_NEW_AREA, ...)
+ if (GetSubZoneText() == "") then
+			CurrentLocationTxt:SetText(GetZoneText())
+			CurrentSubLocationTxt:SetText(nil)
+		else
+			CurrentLocationTxt:SetText(GetZoneText())
+			CurrentSubLocationTxt:SetText(GetSubZoneText())
+		end	
+end
+f:SetScript("OnEvent", eventHandler);
+f:RegisterEvent("ZONE_CHANGED_INDOORS")
+local function eventHandler(self, ZONE_CHANGED_INDOORS, ...)
  if (GetSubZoneText() == "") then
 			CurrentLocationTxt:SetText(GetZoneText())
 			CurrentSubLocationTxt:SetText(nil)
