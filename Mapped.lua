@@ -14,8 +14,8 @@ function Mapped:OnEnable()
 end
 
 -- Main Frame
-Mapped.Main = CreateFrame("Frame", "MappedMainFrame", UIParent)
-Mapped.Main:SetPoint("TOP", "UIParent", "TOP")
+Mapped.Main = CreateFrame("Frame", Mapped.Main, UIParent)
+Mapped.Main:SetPoint("BOTTOM", "UIParent", "TOP")
 Mapped.Main:SetFrameStrata("LOW")
 Mapped.Main:SetHeight(80)
 Mapped.Main:SetBackdrop({
@@ -33,7 +33,22 @@ Mapped.Main.RealShow = Swatter.Error.Show
 Mapped.Main.RealHide = Swatter.Error.Hide
 Mapped.Main:SetScript("OnMouseDown", function() Mapped.Main:StartMoving() end)
 Mapped.Main:SetScript("OnMouseUp", function() Mapped.Main:StopMovingOrSizing() end)
-Mapped.Main:SetScript('OnEnter', MappedMain_OnEnter)
+	-- Instance Frame
+Mapped.Main.Prof = CreateFrame("Frame", Mapped.Main.Instance, Mapped.Main)
+Mapped.Main.Prof:SetPoint("BOTTOM", Mapped.Main, "BOTTOM", 0, -90)
+Mapped.Main.Prof:SetFrameStrata("LOW")
+Mapped.Main.Prof:SetHeight(80)
+Mapped.Main.Prof:SetBackdrop({
+	bgFile = "Interface/Tooltips/ChatBubble-Background",
+	edgeFile = "Interface/Tooltips/ChatBubble-BackDrop",
+	tile = true, tileSize = 32, edgeSize = 32,
+	insets = { left = 32, right = 32, top = 32, bottom = 32 }
+})
+Mapped.Main.Prof:SetBackdropColor(0,0,0, 1)
+Mapped.Main.Prof:SetScript("OnShow", Swatter.ErrorShow)
+Mapped.Main.Prof:SetMovable(true)
+Mapped.Main.Prof:EnableMouse(true)
+Mapped.Main.Prof:SetClampedToScreen(true)
 	-- Hide Button
 Mapped.Main.Done = CreateFrame("Button", "", Mapped.Main, "OptionsButtonTemplate")
 Mapped.Main.Done:SetText("Close")
@@ -41,9 +56,9 @@ Mapped.Main.Done:SetPoint("BOTTOMLEFT", Mapped.Main, "BOTTOMLEFT", 10, 5)
 Mapped.Main.Done:SetScript("OnClick", function() Mapped.Main:Hide() end)
 	-- Config Button
 Mapped.Main.Config = CreateFrame("Button", "", Mapped.Main, "OptionsButtonTemplate")
-Mapped.Main.Config:SetText("Config")
+Mapped.Main.Config:SetText("Professions")
 Mapped.Main.Config:SetPoint("BOTTOMRIGHT", Mapped.Main, "BOTTOMRIGHT", -10, 5)
-Mapped.Main.Config:SetScript("OnClick", MappedConfig)
+Mapped.Main.Config:SetScript("OnClick", function() InstanceFrameControl() end)
 	-- Main Frame Text
 Mapped.Main.Text = Mapped.Main:CreateFontString(nil, "LOW")
 Mapped.Main.Text:Point("CENTER", 0, 0)
@@ -67,6 +82,7 @@ Mapped.Main:SetScript("OnUpdate", function(self,event,...)
 				Mapped.Main.Text:SetText(subZoneText)
 			end
 	Mapped.Main:SetWidth(self.Text:GetStringWidth() + 18)
+	Mapped.Main.Prof:SetWidth(self.Text:GetStringWidth() + 18)
 	if low > 0 and high > 0 then
 	local r, g, b = tourist:GetLevelColor(zoneText)
 	if low ~= high then
@@ -75,9 +91,10 @@ Mapped.Main:SetScript("OnUpdate", function(self,event,...)
 	Mapped.Main.LevelText:SetText(string.format("|cff%02x%02x%02x (%d) |r", r*255, g*255, b*255, high))
 	end
 	end
+	ProfFrameUpdate()
 end)
 
-local function MappedMain_OnEnter(self,...)
+local function MappedMain_OnEnter()
 	GameTooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -4)
 	GameTooltip:ClearAllPoints()
 	GameTooltip:SetPoint("BOTTOM", Mapped.Main, "BOTTOM", 0, 0)
@@ -118,7 +135,18 @@ LibStub("LibDataBroker-1.1"):NewDataObject("AddonLDBObjectName", ldbObject);
 LibStub("LibDBIcon-1.0"):Register("AddonLDBObjectName", ldbObject, db.LDBIconStorage);
 
 ----- Function ---------------------------------------------------------------------------
+		----- InstanceFrameUpdate --------------------------------------------------------
+		function ProfFrameUpdate()
 
+		end
+		----- InstanceFrameControl -------------------------------------------------------
+		function InstanceFrameControl()
+			if Mapped.Main.Prof:IsVisible() then 
+				Mapped.Main.Prof:Hide() 
+			else 
+				Mapped.Main.Prof:Show()
+			end
+		end
 		----- UpdateToolTip --------------------------------------------------------------
 		function UpdateToolTipMain()
 			local mapID = GetCurrentMapAreaID()
