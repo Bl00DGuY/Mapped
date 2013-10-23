@@ -1,7 +1,9 @@
 Mapped = LibStub("AceAddon-3.0"):NewAddon("Mapped", "AceConsole-3.0", "AceEvent-3.0")
 local AceGUI = LibStub("AceGUI-3.0")
+local tourist = LibStub("LibTourist-3.0");
 local currentZone = GetZoneText();
 local currentSubZone = GetSubZoneText();
+
 
 function Mapped:OnInitialize()
     -- Called when the addon is loaded
@@ -12,155 +14,100 @@ function Mapped:OnEnable()
 end
 
 -- Main Frame
-local f = CreateFrame("Frame","MappedPanel",UIParent)
-f:SetFrameStrata("BACKGROUND")
-f:SetWidth(512) -- Set these to whatever height/width is needed 
-f:SetHeight(256) -- for your Texture
-
-local t = f:CreateTexture(nil,"BACKGROUND")
-t:SetTexture("Interface\\Addons\\Mapped\\Texture\\Mainframe.blp")
-t:SetAllPoints(f)
-f.texture = t
-
-f:SetPoint("CENTER",0,0)
-f:Show()
-
-	-- Button (Main Frame)
-	local button = CreateFrame("Button", nil, f)
-	button:SetPoint("Bottom", f, "Bottom", 0, 0)
-	button:SetWidth(80)
-	button:SetHeight(32)
+Mapped.Main = CreateFrame("Frame", "MappedMainFrame", UIParent)
+Mapped.Main:SetPoint("TOP", "UIParent", "TOP")
+Mapped.Main:SetFrameStrata("LOW")
+Mapped.Main:SetHeight(80)
+Mapped.Main:SetBackdrop({
+	bgFile = "Interface/Tooltips/ChatBubble-Background",
+	edgeFile = "Interface/Tooltips/ChatBubble-BackDrop",
+	tile = true, tileSize = 32, edgeSize = 32,
+	insets = { left = 32, right = 32, top = 32, bottom = 32 }
+})
+Mapped.Main:SetBackdropColor(0,0,0, 1)
+Mapped.Main:SetScript("OnShow", Swatter.ErrorShow)
+Mapped.Main:SetMovable(true)
+Mapped.Main:EnableMouse(true)
+Mapped.Main:SetClampedToScreen(true)
+Mapped.Main.RealShow = Swatter.Error.Show
+Mapped.Main.RealHide = Swatter.Error.Hide
+Mapped.Main:SetScript("OnMouseDown", function() Mapped.Main:StartMoving() end)
+Mapped.Main:SetScript("OnMouseUp", function() Mapped.Main:StopMovingOrSizing() end)
+Mapped.Main:SetScript('OnEnter', MappedMain_OnEnter)
+	-- Hide Button
+Mapped.Main.Done = CreateFrame("Button", "", Mapped.Main, "OptionsButtonTemplate")
+Mapped.Main.Done:SetText("Close")
+Mapped.Main.Done:SetPoint("BOTTOMLEFT", Mapped.Main, "BOTTOMLEFT", 10, 5)
+Mapped.Main.Done:SetScript("OnClick", function() Mapped.Main:Hide() end)
+	-- Config Button
+Mapped.Main.Config = CreateFrame("Button", "", Mapped.Main, "OptionsButtonTemplate")
+Mapped.Main.Config:SetText("Config")
+Mapped.Main.Config:SetPoint("BOTTOMRIGHT", Mapped.Main, "BOTTOMRIGHT", -10, 5)
+Mapped.Main.Config:SetScript("OnClick", MappedConfig)
+	-- Main Frame Text
+Mapped.Main.Text = Mapped.Main:CreateFontString(nil, "LOW")
+Mapped.Main.Text:Point("CENTER", 0, 0)
+Mapped.Main.Text:SetFont("Interface\\Addons\\Mapped\\Font\\homespun.ttf", 20, "OUTLINE, MONOCHROME")
+	-- Main Level Text
+	-- Main Frame Text
+Mapped.Main.LevelText = Mapped.Main:CreateFontString(nil, "LOW")
+Mapped.Main.LevelText:Point("TOP", 0, 0)
+Mapped.Main.LevelText:SetFont("Interface\\Addons\\Mapped\\Font\\homespun.ttf", 20, "OUTLINE, MONOCHROME")
+	-- Main Frame OnUpdate Script
+Mapped.Main:SetScript("OnUpdate", function(self,event,...)
+	local subZoneText = GetMinimapZoneText() or ""
+	local zoneText = GetRealZoneText() or UNKNOWN;
+	local zoneText = GetRealZoneText()
+	local low, high = tourist:GetLevel(zoneText)
+	local r, g, b = tourist:GetLevelColor(zoneText)
 	
-	button:SetText("Close")
-	button:SetNormalFontObject("GameFontNormal")
-	
-	local ntex = button:CreateTexture()
-	ntex:SetTexture("Interface\\Addons\\Mapped\\Texture\\ButtonHide_UP.blp")
-	ntex:SetTexCoord(0, 0.625, 0, 0.6875)
-	ntex:SetAllPoints()	
-	button:SetNormalTexture(ntex)
-	
-	local htex = button:CreateTexture()
-	htex:SetTexture("Interface\\Addons\\Mapped\\Texture\\ButtonHide_HIGH.blp")
-	htex:SetTexCoord(0, 0.625, 0, 0.6875)
-	htex:SetAllPoints()
-	button:SetHighlightTexture(htex)
-	
-	local ptex = button:CreateTexture()
-	ptex:SetTexture("Interface\\Addons\\Mapped\\Texture\\ButtonHide_DOWN.blp")
-	ptex:SetTexCoord(0, 0.625, 0, 0.6875)
-	ptex:SetAllPoints()
-	button:SetPushedTexture(ptex)
-	
-	button:SetScript("OnClick", function(self, arg1)
-    f:Hide()
-	end)
-	button:Click(f:Hide())
-
--- Frame Movement 
-f:EnableMouse(true)
-f:SetMovable(true)
-f:SetScript("OnMouseDown", function(self, button)
-  if button == "LeftButton" and not self.isMoving then
-   self:StartMoving();
-   self.isMoving = true;
-  end
+	if (subZoneText ~= "") and (subZoneText ~= zoneText) then
+				Mapped.Main.Text:SetText(zoneText .. ": " .. subZoneText)
+			else
+				Mapped.Main.Text:SetText(subZoneText)
+			end
+	Mapped.Main:SetWidth(self.Text:GetStringWidth() + 18)
+	if low > 0 and high > 0 then
+	local r, g, b = tourist:GetLevelColor(zoneText)
+	if low ~= high then
+	Mapped.Main.LevelText:SetText(string.format("|cff%02x%02x%02x (%d-%d) |r", r*255, g*255, b*255, low, high))
+	else
+	Mapped.Main.LevelText:SetText(string.format("|cff%02x%02x%02x (%d) |r", r*255, g*255, b*255, high))
+	end
+	end
 end)
-f:SetScript("OnMouseUp", function(self, button)
-  if button == "LeftButton" and self.isMoving then
-   self:StopMovingOrSizing();
-   self.isMoving = false;
-  end
-end)
-f.Text = MappedPanel:CreateFontString(nil, "LOW")
-f.Text:Point("CENTER", 0, 0)
-f:SetAlpha(.75);
 
--- Version Text
---local VerTxt = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
---VerTxt:SetPoint("BOTTOM", 230, 5)
---VerTxt:SetText(GetZoneText())
---VerTxt:SetFont(DEFAULT, 20, "OUTLINE, MONOCHROME")
---VerTxt:SetText("0.0.0.1a")
-
--- Current Location Text
-local CurrentLocationTxt = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-CurrentLocationTxt:SetPoint("TOP", 80, -20)
-CurrentLocationTxt:SetText(GetZoneText())
-CurrentLocationTxt:SetFont("Interface\\Addons\\Mapped\\Font\\homespun.ttf", 20, "OUTLINE, MONOCHROME")
-
--- Current Sub_Location Text
-local CurrentSubLocationTxt = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-CurrentSubLocationTxt:SetPoint("TOP", 80, -40)
-CurrentSubLocationTxt:SetText(GetSubZoneText())
-CurrentSubLocationTxt:SetFont("Interface\\Addons\\Mapped\\Font\\homespun.ttf", 16, "OUTLINE, MONOCHROME")
-
-f:RegisterEvent("ZONE_CHANGED")
-local function eventHandler(self, ZONE_CHANGED, ...)
- if (GetSubZoneText() == "") then
-			CurrentLocationTxt:SetText(GetZoneText())
-			CurrentSubLocationTxt:SetText(nil)
-		else
-			CurrentLocationTxt:SetText(GetZoneText())
-			CurrentSubLocationTxt:SetText(GetSubZoneText())
-		end	
+local function MappedMain_OnEnter(self,...)
+	GameTooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -4)
+	GameTooltip:ClearAllPoints()
+	GameTooltip:SetPoint("BOTTOM", Mapped.Main, "BOTTOM", 0, 0)
+	GameTooltip:SetText("Je Test")
+	GameTooltip:Show()
+	UpdateToolTipMain()
 end
-f:SetScript("OnEvent", eventHandler);
-f:RegisterEvent("ZONE_CHANGED_NEW_AREA")
-local function eventHandler(self, ZONE_CHANGED_NEW_AREA, ...)
- if (GetSubZoneText() == "") then
-			CurrentLocationTxt:SetText(GetZoneText())
-			CurrentSubLocationTxt:SetText(nil)
-		else
-			CurrentLocationTxt:SetText(GetZoneText())
-			CurrentSubLocationTxt:SetText(GetSubZoneText())
-		end	
-end
-f:SetScript("OnEvent", eventHandler);
-f:RegisterEvent("ZONE_CHANGED_INDOORS")
-local function eventHandler(self, ZONE_CHANGED_INDOORS, ...)
- if (GetSubZoneText() == "") then
-			CurrentLocationTxt:SetText(GetZoneText())
-			CurrentSubLocationTxt:SetText(nil)
-		else
-			CurrentLocationTxt:SetText(GetZoneText())
-			CurrentSubLocationTxt:SetText(GetSubZoneText())
-		end	
-end
-f:SetScript("OnEvent", eventHandler);
-
+	
 -- Minimap Button
-
-local db; -- File-global handle to the Database
+local db;
 local defaults = {
 	profile = {
-		LDBIconStorage = {}, -- LibDBIcon storage
+		LDBIconStorage = {},
 	},
 };
-
 local ldbObject = {
 	type = "launcher",
 	icon = "Interface\\ICONS\\spell_nature_bloodlust",
---This is the icon used. Any .blp or .tga file is a valid icon.
---This path is ALWAYS relative to the World of Warcraft
---root (ie, "C:\Program Files\World of Warcraft" for
---Windows and "/Applications/World of Warcraft" for Mac)
 	label = "AddonName",
 	OnClick = function(self, button)
-		f:Show()
+		Mapped.Main:Show()
 	end,
 	OnTooltipShow = function(tooltip)
 		tooltip:AddLine("Mapped");
---Add text here. The first line is ALWAYS a "header" type.
---It will appear slightly larger than subsequent lines of text
 	end,
 };
-
 function updateDB(self, event, database)
 	db = database.profile;
 	LibStub("LibDBIcon-1.0"):Refresh("AddonLDBObjectName", db.LDBIconStorage);
 end
-
 local vars = LibStub("AceDB-3.0"):New("AddonSavedVarStorage", defaults);
 vars:RegisterCallback("OnProfileChanged", updateDB);
 vars:RegisterCallback("OnProfileCopied", updateDB);
@@ -170,22 +117,56 @@ db = vars.profile;
 LibStub("LibDataBroker-1.1"):NewDataObject("AddonLDBObjectName", ldbObject);
 LibStub("LibDBIcon-1.0"):Register("AddonLDBObjectName", ldbObject, db.LDBIconStorage);
 
+----- Function ---------------------------------------------------------------------------
 
------ DEBUG ---------------------------------------------------------------------------
-if (devDebug == true) then
-
-	-- Print Current Zone--------------------------------------
-	function Mapped:ZONE_CHANGED()
-		if (GetSubZoneText() == "") then
-			self:Print("[Debug]",GetZoneText())
-			CurrentLocationTxt:SetText(GetZoneText())
-			CurrentSubLocationTxt:SetText(GetSubZoneText())
-		else
-			self:Print("[Debug]",GetZoneText()," (",GetSubZoneText(),")")
-			CurrentLocationTxt:SetText(GetZoneText())
-			CurrentSubLocationTxt:SetText(GetSubZoneText())
-		end	
-	end
-	-----------------------------------------------------------
+		----- UpdateToolTip --------------------------------------------------------------
+		function UpdateToolTipMain()
+			local mapID = GetCurrentMapAreaID()
+			local zoneText = GetMapNameByID(mapID) or UNKNOWN;
+			local curPos = (zoneText.." ") or "";
+			
+			GameTooltip:ClearLines()
 	
-end
+			-- Zone
+			GameTooltip:AddDoubleLine(L["Zone : "], zoneText, 1, 1, 1, selectioncolor)
+	
+			-- Continent
+			GameTooltip:AddDoubleLine(CONTINENT.." : ", tourist:GetContinent(zoneText), 1, 1, 1, selectioncolor)
+	
+			-- Home
+			GameTooltip:AddDoubleLine(HOME.." :", GetBindLocation(), 1, 1, 1, selectioncolor)
+			
+			GameTooltip:Show()
+		end
+		----- UpdateZoneLevel ------------------------------------------------------------
+		local function LocLevelRange(zoneText)
+			local low, high = tourist:GetLevel(zoneText)
+			if low >= 1 and high >= 1 then
+				local r, g, b = tourist:GetLevelColor(zoneText)
+				return string.format("|cff%02x%02x%02x %d-%d|r", r*255, g*255, b*255, low, high) or ""
+			end
+	
+			return ""
+		end
+		----- MappedConfig ---------------------------------------------------------------
+		local function MappedConfig()
+			local textStore
+
+			local frame = AceGUI:Create("Frame")
+			frame:SetTitle("Example Frame")
+			frame:SetStatusText("AceGUI-3.0 Example Container Frame")
+			frame:SetCallback("OnClose", function(widget) AceGUI:Release(widget) end)
+			frame:SetLayout("Flow")
+
+			local editbox = AceGUI:Create("EditBox")
+			editbox:SetLabel("Insert text:")
+			editbox:SetWidth(200)
+			editbox:SetCallback("OnEnterPressed", function(widget, event, text) textStore = text end)
+			frame:AddChild(editbox)
+
+			local button = AceGUI:Create("Button")
+			button:SetText("Click Me!")
+			button:SetWidth(200)
+			button:SetCallback("OnClick", function() print(textStore) end)
+			frame:AddChild(button)
+		end

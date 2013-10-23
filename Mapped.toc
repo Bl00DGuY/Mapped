@@ -4,7 +4,11 @@
 ## Author: Bl00DGuY
 ## Notes: Improve your map.
 ## OptionalDeps: Ace3
+## OptionalDeps: LibTourist-3.0
+## DefaultState: Enabled
 ## X-Embeds: Ace3
 
 Mapped.lua
 Mapped.xml
+libs\load_libs.xml
+Function\UpdateLocation.lua
