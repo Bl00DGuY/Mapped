@@ -81,8 +81,14 @@ Mapped.Main:SetScript("OnUpdate", function(self,event,...)
 			else
 				Mapped.Main.Text:SetText(subZoneText)
 			end
-	Mapped.Main:SetWidth(self.Text:GetStringWidth() + 18)
-	Mapped.Main.Prof:SetWidth(self.Text:GetStringWidth() + 18)
+	-- Ensure the Main/Prof frame is never under 300 in width
+	if (self.Text:GetStringWidth() + 18) < 300 then
+		Mapped.Main:SetWidth(300)
+		Mapped.Main.Prof:SetWidth(300)
+		else
+		Mapped.Main:SetWidth(self.Text:GetStringWidth() + 18)
+		Mapped.Main.Prof:SetWidth(self.Text:GetStringWidth() + 18)
+	end
 	if low > 0 and high > 0 then
 	local r, g, b = tourist:GetLevelColor(zoneText)
 	if low ~= high then
