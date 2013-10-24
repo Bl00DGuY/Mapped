@@ -49,6 +49,7 @@ Mapped.Main.Prof:SetScript("OnShow", Swatter.ErrorShow)
 Mapped.Main.Prof:SetMovable(true)
 Mapped.Main.Prof:EnableMouse(true)
 Mapped.Main.Prof:SetClampedToScreen(true)
+Mapped.Main.Prof:Hide()
 	-- Hide Button
 Mapped.Main.Done = CreateFrame("Button", "", Mapped.Main, "OptionsButtonTemplate")
 Mapped.Main.Done:SetText("Close")
@@ -59,15 +60,31 @@ Mapped.Main.Config = CreateFrame("Button", "", Mapped.Main, "OptionsButtonTempla
 Mapped.Main.Config:SetText("Professions")
 Mapped.Main.Config:SetPoint("BOTTOMRIGHT", Mapped.Main, "BOTTOMRIGHT", -10, 5)
 Mapped.Main.Config:SetScript("OnClick", function() InstanceFrameControl() end)
+	-- Main Version Text
+Mapped.Main.Version = Mapped.Main:CreateFontString(nil, "LOW")
+Mapped.Main.Version:Point("TOPRIGHT", 0, -5)
+Mapped.Main.Version:SetFont("Fonts\\MORPHEUS.ttf", 10, "OUTLINE")
+Mapped.Main.Version:SetText("Mapped 0.1.0.0b")
 	-- Main Frame Text
 Mapped.Main.Text = Mapped.Main:CreateFontString(nil, "LOW")
 Mapped.Main.Text:Point("CENTER", 0, 0)
-Mapped.Main.Text:SetFont("Interface\\Addons\\Mapped\\Font\\homespun.ttf", 20, "OUTLINE, MONOCHROME")
+Mapped.Main.Text:SetFont("Interface\\Addons\\Mapped\\Font\\homespun.ttf", 20, "THICKOUTLINE")
 	-- Main Level Text
-	-- Main Frame Text
 Mapped.Main.LevelText = Mapped.Main:CreateFontString(nil, "LOW")
 Mapped.Main.LevelText:Point("TOP", 0, 0)
-Mapped.Main.LevelText:SetFont("Interface\\Addons\\Mapped\\Font\\homespun.ttf", 20, "OUTLINE, MONOCHROME")
+Mapped.Main.LevelText:SetFont("Interface\\Addons\\Mapped\\Font\\homespun.ttf", 20, "OUTLINE")
+	-- Main Coord Text
+Mapped.Main.CoordText = Mapped.Main:CreateFontString(nil, "LOW")
+Mapped.Main.CoordText:Point("TOPLEFT", 10, -10)
+Mapped.Main.CoordText:SetFont("Interface\\Addons\\Mapped\\Font\\homespun.ttf", 18, "OUTLINE")
+	-- Prof Fishing Text
+Mapped.Main.Prof.PetText = Mapped.Main.Prof:CreateFontString(nil, "LOW")
+Mapped.Main.Prof.PetText:Point("TOPLEFT", 10, -10)
+Mapped.Main.Prof.PetText:SetFont("Interface\\Addons\\Mapped\\Font\\homespun.ttf", 18, "OUTLINE")
+	-- Prof Fishing Text
+Mapped.Main.Prof.FishText = Mapped.Main.Prof:CreateFontString(nil, "LOW")
+Mapped.Main.Prof.FishText:Point("TOPLEFT", 10, -30)
+Mapped.Main.Prof.FishText:SetFont("Interface\\Addons\\Mapped\\Font\\homespun.ttf", 18, "OUTLINE")
 	-- Main Frame OnUpdate Script
 Mapped.Main:SetScript("OnUpdate", function(self,event,...)
 	local subZoneText = GetMinimapZoneText() or ""
@@ -75,13 +92,9 @@ Mapped.Main:SetScript("OnUpdate", function(self,event,...)
 	local zoneText = GetRealZoneText()
 	local low, high = tourist:GetLevel(zoneText)
 	local r, g, b = tourist:GetLevelColor(zoneText)
+	local x, y = GetPlayerMapPosition("player")
 	
-	if (subZoneText ~= "") and (subZoneText ~= zoneText) then
-				Mapped.Main.Text:SetText(zoneText .. ": " .. subZoneText)
-			else
-				Mapped.Main.Text:SetText(subZoneText)
-			end
-	-- Ensure the Main/Prof frame is never under 300 in width
+		-- Ensure the Main/Prof frame is never under 300 in width
 	if (self.Text:GetStringWidth() + 18) < 300 then
 		Mapped.Main:SetWidth(300)
 		Mapped.Main.Prof:SetWidth(300)
@@ -89,6 +102,20 @@ Mapped.Main:SetScript("OnUpdate", function(self,event,...)
 		Mapped.Main:SetWidth(self.Text:GetStringWidth() + 18)
 		Mapped.Main.Prof:SetWidth(self.Text:GetStringWidth() + 18)
 	end
+	
+	-- Update Coord
+	local roundedX = roundNum((x * 100), 0)
+	local roundedY = roundNum((y * 100), 0)
+	Mapped.Main.CoordText:SetText(roundedX .. ":" .. roundedY)
+	
+	-- Update Zone Name
+	if (subZoneText ~= "") and (subZoneText ~= zoneText) then
+				Mapped.Main.Text:SetText(zoneText .. ": " .. subZoneText)
+			else
+				Mapped.Main.Text:SetText(subZoneText)
+	end
+	
+	-- Update Level Text
 	if low > 0 and high > 0 then
 	local r, g, b = tourist:GetLevelColor(zoneText)
 	if low ~= high then
@@ -97,7 +124,17 @@ Mapped.Main:SetScript("OnUpdate", function(self,event,...)
 	Mapped.Main.LevelText:SetText(string.format("|cff%02x%02x%02x (%d) |r", r*255, g*255, b*255, high))
 	end
 	end
-	ProfFrameUpdate()
+	
+	local low,high = tourist:GetBattlePetLevel(zoneText)
+		if low ~= nil or high ~= nil then
+			Mapped.Main.Prof.PetText:SetText("Pet Battle: " .. string.format("%d-%d", low, high), 1, 1, 1, selectioncolor)
+		end
+		
+	local minFish = tourist:GetFishingLevel(zoneText)
+		if minFish then
+			Mapped.Main.Prof.FishText:SetText("Fishing: " .. minFish, 1, 1, 1, selectioncolor)
+		end
+	
 end)
 
 local function MappedMain_OnEnter()
@@ -143,7 +180,7 @@ LibStub("LibDBIcon-1.0"):Register("AddonLDBObjectName", ldbObject, db.LDBIconSto
 ----- Function ---------------------------------------------------------------------------
 		----- InstanceFrameUpdate --------------------------------------------------------
 		function ProfFrameUpdate()
-
+		
 		end
 		----- InstanceFrameControl -------------------------------------------------------
 		function InstanceFrameControl()
@@ -152,25 +189,6 @@ LibStub("LibDBIcon-1.0"):Register("AddonLDBObjectName", ldbObject, db.LDBIconSto
 			else 
 				Mapped.Main.Prof:Show()
 			end
-		end
-		----- UpdateToolTip --------------------------------------------------------------
-		function UpdateToolTipMain()
-			local mapID = GetCurrentMapAreaID()
-			local zoneText = GetMapNameByID(mapID) or UNKNOWN;
-			local curPos = (zoneText.." ") or "";
-			
-			GameTooltip:ClearLines()
-	
-			-- Zone
-			GameTooltip:AddDoubleLine(L["Zone : "], zoneText, 1, 1, 1, selectioncolor)
-	
-			-- Continent
-			GameTooltip:AddDoubleLine(CONTINENT.." : ", tourist:GetContinent(zoneText), 1, 1, 1, selectioncolor)
-	
-			-- Home
-			GameTooltip:AddDoubleLine(HOME.." :", GetBindLocation(), 1, 1, 1, selectioncolor)
-			
-			GameTooltip:Show()
 		end
 		----- UpdateZoneLevel ------------------------------------------------------------
 		local function LocLevelRange(zoneText)
@@ -203,4 +221,12 @@ LibStub("LibDBIcon-1.0"):Register("AddonLDBObjectName", ldbObject, db.LDBIconSto
 			button:SetWidth(200)
 			button:SetCallback("OnClick", function() print(textStore) end)
 			frame:AddChild(button)
+		end
+		----- Math ------------------------------------------------------------------------
+		function roundNum(val, decimal)
+			if (decimal) then
+				return math.floor(((val * 10^decimal) + 0.5) / (10^decimal))
+			else
+				return math.floor(val+0.5)
+			end
 		end
