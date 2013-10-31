@@ -1,4 +1,5 @@
 Mapped = LibStub("AceAddon-3.0"):NewAddon("Mapped", "AceConsole-3.0", "AceEvent-3.0")
+local version = "1.0.1.3"
 local AceGUI = LibStub("AceGUI-3.0")
 local tourist = LibStub("LibTourist-3.0");
 local currentZone = GetZoneText();
@@ -10,7 +11,7 @@ function Mapped:OnInitialize()
 end
 
 function Mapped:OnEnable()
-    self:Print("Version 1.0.0.0 loaded.")
+    self:Print("Version " .. version .. " loaded")
 end
 
 -- Main Frame
@@ -64,7 +65,7 @@ Mapped.Main.Config:Hide()
 Mapped.Main.Version = Mapped.Main:CreateFontString(nil, "LOW")
 Mapped.Main.Version:Point("TOPRIGHT", 0, -5)
 Mapped.Main.Version:SetFont("Fonts\\MORPHEUS.ttf", 10, "OUTLINE")
-Mapped.Main.Version:SetText("Mapped 1.0.0.0")
+Mapped.Main.Version:SetText("Mapped " .. version)
 	-- Main Frame Text
 Mapped.Main.Text = Mapped.Main:CreateFontString(nil, "LOW")
 Mapped.Main.Text:Point("BOTTOM", 0, 0)
@@ -141,21 +142,24 @@ Mapped.Main:SetScript("OnUpdate", function(self,event,...)
 	local r, g, b = tourist:GetLevelColor(zoneText)
 	local x, y = GetPlayerMapPosition("player")
 	local curPos = (zoneText.." ") or "";
-	local low,high = tourist:GetBattlePetLevel(zoneText)
+	local plow,phigh = tourist:GetBattlePetLevel(zoneText)
 	local minFish = tourist:GetFishingLevel(zoneText)
+	local pvpType, _, factionName = GetZonePVPInfo()
 	
 	-- GameToolTip Logic
 	if MouseIsOver(self) then
 	    GameTooltip:ClearLines()
-        GameTooltip:SetOwner(self, "ANCHOR_BOTTOM") 
+        GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
 		GameTooltip:AddDoubleLine(HOME.." :", GetBindLocation(), 1, 1, 1, selectioncolor)
 		
 		if low ~= nil or high ~= nil then
 			GameTooltip:AddLine(" ")
-			GameTooltip:AddDoubleLine("Battle Pet level".. " :", low == high and low or string.format("%d-%d", low, high), 1, 1, 1, selectioncolor)
+			GameTooltip:AddDoubleLine("Battle Pet level".. " :", plow == phigh and plow or string.format("%d-%d", plow, phigh), 1, 1, 1, selectioncolor)
 		end
 		
+		if (minFish ~= nil) then
 		GameTooltip:AddDoubleLine("Fishing" .. " : ", minFish, 1, 1, 1, selectioncolor)
+		end
 		
 		GameTooltip:AddLine(" ")
 		GameTooltip:AddLine("Recommended Zones :", 1, 1, 1, selectioncolor)
@@ -172,7 +176,6 @@ Mapped.Main:SetScript("OnUpdate", function(self,event,...)
 				CurrentDungZones(zone)
 			end
 		end		
-		
 		GameTooltip:Show()
 	end
 	
@@ -191,22 +194,30 @@ Mapped.Main:SetScript("OnUpdate", function(self,event,...)
 	Mapped.Main.CoordText:SetText(roundedX .. ":" .. roundedY)
 	
 	-- Update Zone Name
+	
 	if (subZoneText ~= "") and (subZoneText ~= zoneText) then
 				Mapped.Main.Text:SetText(zoneText .. ": " .. subZoneText)
 			else
 				Mapped.Main.Text:SetText(subZoneText)
 	end
-	
+
 	-- Update Level Text
-	if low > 0 and high > 0 then
-	local r, g, b = tourist:GetLevelColor(zoneText)
-	if low ~= high then
-	Mapped.Main.LevelText:SetText(string.format("|cff%02x%02x%02x (%d-%d) |r", r*255, g*255, b*255, low, high))
-	else
-	Mapped.Main.LevelText:SetText(string.format("|cff%02x%02x%02x (%d) |r", r*255, g*255, b*255, high))
+	if (pvpType ~= "sanctuary") then
+		if low > 0 and high > 0 then
+		local r, g, b = tourist:GetLevelColor(zoneText)
+		if low ~= high then
+		Mapped.Main.LevelText:SetText(string.format("|cff%02x%02x%02x (%d-%d) |r", r*255, g*255, b*255, low, high))
+		else
+		Mapped.Main.LevelText:SetText(string.format("|cff%02x%02x%02x (%d) |r", r*255, g*255, b*255, high))
+		end
+		end
+	elseif (pvpType == "sanctuary") then
+	Mapped.Main.LevelText:SetText(string.format("|cff%02x%02x%02x %s", 0, 255, 255, "Sanctuary"))
+	elseif (pvpType == "arena") then
+	Mapped.Main.LevelText:SetText(string.format("|cff%02x%02x%02x %s", 255, 0, 0, "Arena"))
+	elseif (pvpType == "combat") then
+	Mapped.Main.LevelText:SetText(string.format("|cff%02x%02x%02x %s", 255, 0, 0, "PvP"))
 	end
-	end
-	
 	local low,high = tourist:GetBattlePetLevel(zoneText)
 		if low ~= nil or high ~= nil then
 			Mapped.Main.Prof.PetText:SetText("Pet Battle: " .. string.format("%d-%d", low, high), 1, 1, 1, selectioncolor)
